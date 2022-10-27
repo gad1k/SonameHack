@@ -3,12 +3,12 @@ import pg8000
 
 
 def get_creds(name):
-    with open("../config/creds.json", mode="r", encoding="utf-8") as data:
+    with open("../config/cfg_02_creds.json", mode="r", encoding="utf-8") as data:
         return json.load(data).get(name)
 
 
 def get_table_info(name):
-    with open("../config/queries.json", mode="r", encoding="utf-8") as data:
+    with open("../config/cfg_03_queries.json", mode="r", encoding="utf-8") as data:
         return json.load(data).get(name)
 
 
