@@ -1,5 +1,3 @@
-drop table public.features;
-
 create table if not exists public.features (
   id int4 not null,
   light varchar(50) not null,

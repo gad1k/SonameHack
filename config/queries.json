@@ -1,5 +1,0 @@
-{
-    "features": {
-        "query": "insert into public.features values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);" 
-    }
-}
