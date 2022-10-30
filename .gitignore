@@ -1,5 +1,3 @@
 .idea
 data
-tmp/python
-tmp/*.docx
-tmp/*.tmp
+tmp
