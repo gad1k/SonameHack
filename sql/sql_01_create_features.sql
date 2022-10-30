@@ -14,6 +14,8 @@ create table if not exists public.features (
   origin_file varchar(100) not null
 );
 
+comment on table public.features is 'Дорожно-траспортные проишествия';
+
 comment on column public.features.id is 'Идентификатор';
 comment on column public.features.light is 'Время суток';
 comment on column public.features.region is 'Город / район';
