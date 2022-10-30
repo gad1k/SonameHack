@@ -1,0 +1,41 @@
+{
+    "base_dir": "C:/SonameHack/data/",
+    "tables": {
+        "features": {
+            "query": "insert into public.features values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+        },
+        "tags": {
+            "query": "insert into public.tags values (%s, %s, %s);"
+        },
+        "points": {
+            "query": "insert into public.points values (%s, %s, %s);"
+        },
+        "nearby": {
+            "query": "insert into public.nearby values (%s, %s, %s);"
+        },
+        "weather": {
+            "query": "insert into public.weather values (%s, %s, %s);"
+        },
+        "vehicles": {
+            "query": "insert into public.vehicles values (%s, %s, %s, %s, %s, %s, %s);"
+        },
+        "vehicle_participants": {
+            "query": "insert into public.vehicle_participants values (%s, %s, %s, %s, %s, %s, %s);"
+        },
+        "vehicle_violations": {
+            "query": "insert into public.vehicle_violations values (%s, %s, %s, %s, %s);"
+        },
+        "participants": {
+            "query": "insert into public.participants values (%s, %s, %s, %s, %s);"
+        },
+        "violations": {
+            "query": "insert into public.violations values (%s, %s, %s, %s);"
+        },
+        "road_conditions": {
+            "query": "insert into public.road_conditions values (%s, %s, %s);"
+        },
+        "participant_categories": {
+            "query": "insert into public.participant_categories values (%s, %s, %s);"
+        }
+    }
+}
