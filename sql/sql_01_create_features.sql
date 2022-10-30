@@ -3,14 +3,15 @@ create table if not exists public.features (
   light varchar(50) not null,
   region varchar(50) not null,
   "schema" varchar(10),
-  address varchar(200),
+  address varchar(300),
   category varchar(150) not null,
   datetime timestamp not null,
   severity varchar(50) not null,
   dead_count int4 not null,
   injured_count int4 not null,
   parent_region varchar(50) not null,
-  participants_count int4 not null
+  participants_count int4 not null,
+  origin_file varchar(100) not null
 );
 
 comment on column public.features.id is 'Идентификатор';
@@ -25,3 +26,4 @@ comment on column public.features.dead_count is 'Количество погиб
 comment on column public.features.injured_count is 'Количество раненых в ДТП';
 comment on column public.features.parent_region is 'Регион';
 comment on column public.features.participants_count is 'Количество участников ДТП';
+comment on column public.features.origin_file is 'Исходный файл';
