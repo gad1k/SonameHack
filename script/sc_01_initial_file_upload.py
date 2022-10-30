@@ -1,5 +1,8 @@
 import json
-import pg8000
+import os
+import psycopg2
+
+from datetime import datetime
 
 
 def get_creds(name):
@@ -7,58 +10,115 @@ def get_creds(name):
         return json.load(data).get(name)
 
 
-def get_table_info(name):
-    with open("../config/cfg_03_queries.json", mode="r", encoding="utf-8") as data:
+def get_meta(name):
+    with open("../config/cfg_03_meta.json", mode="r", encoding="utf-8") as data:
         return json.load(data).get(name)
 
 
-def upload_table(table_name, table_data, cursor):
-    query = get_table_info(table_name)["query"]
+def init_tables():
+    return {
+        "features": list(),
+        "tags": list(),
+        "points": list(),
+        "nearby": list(),
+        "weather": list(),
+        "vehicles": list(),
+        "vehicle_participants": list(),
+        "vehicle_violations": list(),
+        "participants": list(),
+        "violations": list(),
+        "road_conditions": list(),
+        "participant_categories": list()
+    }
 
-    try:
-        for row in table_data:
-            values = [*row.values()]
 
-            # if len(values) == 11:
-            #     values.insert(3, None)
+def parse_file(file, tabs):
+    origin_file = file.name.split("/")[-1]
+    collection = json.load(file)
 
-            cursor.execute(query, tuple(values))
-    except Exception as e:
-        raise Exception(row, e)
+    for feature in collection.pop("features"):
+        vehicle_stack = ["violations", tabs["vehicle_violations"], "participants", tabs["vehicle_participants"]]
+        participant_stack = ["violations", tabs["violations"]]
+
+        feature = feature.pop("properties")
+        key = feature.get("id")
+
+        fill_table(tabs["tags"], feature.pop("tags"), [key])
+        fill_table(tabs["nearby"], feature.pop("nearby"), [key])
+        fill_table(tabs["weather"], feature.pop("weather"), [key])
+        fill_table(tabs["vehicles"], feature.pop("vehicles"), [key], vehicle_stack)
+        fill_table(tabs["participants"], feature.pop("participants"), [key], participant_stack)
+        fill_table(tabs["road_conditions"], feature.pop("road_conditions"), [key])
+        fill_table(tabs["participant_categories"], feature.pop("participant_categories"), [key])
+
+        tabs["points"].append([key, *feature.pop("point").values()])
+        tabs["features"].append([*feature.values(), origin_file])
 
 
-with open("../data/chukotskii-avtonomnyi-okrug.geojson", mode="r", encoding="utf-8") as json_file:
-    collection = json.load(json_file)
+def fill_table(table, data, keys, stack=None):
+    stack_table, stack_data = None, None
 
-    features = list()
+    if stack is not None and len(stack) != 0:
+        stack_table, stack_data = stack.pop(), stack.pop()
 
-    for f in collection.pop("features"):
-        feature = f.pop("properties")
+    for seq_num, row in enumerate(data, start=1):
+        if stack_table is not None:
+            fill_table(stack_table, row.pop(stack_data), [*keys, seq_num], stack.copy())
 
-        feature.pop("tags")
-        feature.pop("point")
-        feature.pop("nearby")
-        feature.pop("weather")
-        feature.pop("vehicles")
-        feature.pop("participants")
-        feature.pop("road_conditions")
-        feature.pop("participant_categories")
+        if isinstance(row, str):
+            table.append([*keys, seq_num, row])
+        else:
+            table.append([*keys, seq_num, *row.values()])
 
-        features.append(feature)
 
+def upload_file(tabs, cursor):
+    for table, data in tabs.items():
+        print(f"   {datetime.now()} :: {table}")
+        upload_table(table, data, cursor)
+
+
+def upload_table(table, data, cursor):
+    query = get_meta("tables")[table]["query"]
+
+    for row in data:
+        try:
+            if len(row) == 12 and table == "features":
+                row.insert(3, None)
+
+            cursor.execute(query, tuple(row))
+        except Exception as e:
+            raise Exception(e, table, row)
+
+
+def show_error(err):
+    print("\n=================================================================\n")
+    print("ERROR:", err.args[0])
+
+    print("TABLE:", err.args[1], end="\n\n")
+
+    print("COLUMNS:")
+    for column in err.args[2]:
+        print(f"   {str(len(str(column))).zfill(4)} => {column}")
+
+
+def initial_file_upload():
     creds = get_creds("hackathon_hst")
-    with pg8000.connect(**creds) as conn:
+    base_dir = get_meta("base_dir")
+    files = [files for files in os.listdir(base_dir) if files != ".gitkeep"]
+
+    with psycopg2.connect(**creds) as conn:
         try:
             with conn.cursor() as cur:
-                upload_table("features", features, cur)
-                conn.commit()
+                for file in files:
+                    with open(f"{base_dir}{file}", mode="r", encoding="utf-8") as json_data:
+                        table_collection = init_tables()
+                        parse_file(json_data, table_collection)
+                        print(file)
+                        upload_file(table_collection, cur)
+                        conn.commit()
         except Exception as ex:
             conn.rollback()
+            show_error(ex)
 
-            for k, v in ex.args[0].items():
-                if isinstance(v, str):
-                    print(f"'{k}': ({len(v)}) {v}")
-                else:
-                    print(f"'{k}': (XX) {v}")
 
-            print("\n", ex.args[1])
+initial_file_upload()
