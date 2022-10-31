@@ -1,5 +1,5 @@
 {
-    "base_dir": "C:/SonameHack/data/",
+    "base_dir": "../data/",
     "tables": {
         "features": {
             "query": "insert into public.features values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
