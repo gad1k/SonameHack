@@ -1,9 +1,10 @@
 import json
+import psycopg2
+
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 
-import psycopg2
 
 CONFIG_DIR = Path("../config/")
 DATA_DIR = Path("../data/")
@@ -131,6 +132,7 @@ def initial_file_upload():
             with conn.cursor() as cur:
                 for file in DATA_DIR.glob("*.geojson"):
                     data = Parser(file).get_parsed_data()
+                    print(file.parts[-1])
                     Uploader(cur).upload_data(data)
 
                     conn.commit()
